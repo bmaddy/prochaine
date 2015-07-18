@@ -1,5 +1,5 @@
-(ns contacts.demo3
-  "om.next demo3: using static data"
+(ns prochaine.client
+  "prochaine: om.next technical study"
   ;; (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [goog.dom :as gdom]
             [goog.object :as object]

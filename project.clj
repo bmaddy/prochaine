@@ -18,7 +18,7 @@
 
   :figwheel {:css-dirs ["resources/public/css"]}
 
-  :source-paths ["src/clj"] ;; NOTE: not used
+  :source-paths ["src/main/clj"] ;; NOTE: not used
 
   ;; clean generated JavaScript
   :clean-targets ^{:protect false}
@@ -28,9 +28,9 @@
   {:dev {:cljsbuild
          {:builds
           {:app
-           {:source-paths ["src/cljs"]
+           {:source-paths ["src/main/cljs"]
             :figwheel {:websocket-host "localhost"}
-            :compiler {:main contacts.demo3
+            :compiler {:main prochaine.client
                        :output-dir "resources/public/js/compiled"
                        :output-to  "resources/public/js/compiled/app.js"
                        :asset-path "js/compiled"
