@@ -7,19 +7,17 @@
             ;; [cljs.core.async :as async :refer [<! >! chan]]
             [cljs.pprint :refer [pprint]]
             [om.next :as om :refer-macros [defui]]
+            [prochaine.next :as tom]
+            [om.next.protocols :as p]
+            [om.next.stores :refer [TreeStore]]
             [om.dom :as dom]))
 
-;; (defn log [x]
-;;   (println) ;; flush past prompt
-;;   (pprint x))
+(enable-console-print!)
 
-;; Example HTTP POST to retreive data (requires cljs-http)
-;; (defn fetch [q]
-;;   (http/post "http://localhost:8081/query" {:transit-params q}))
+(defonce app-state (atom nil))
+(defonce reconciler (atom nil))
 
-(defn fetch-contacts
-  "Return simple, static contacts data (ignore the query)."
-  [query]
+(def bob-martha
   {:app/contacts
    [{:person/first-name "Bob",
      :person/last-name "Smith"
@@ -35,6 +33,22 @@
                        :address/city "Boston",
                        :address/state "Massachusetts",
                        :address/zipcode "11112"}]}]})
+
+(def tom
+  {:app/contacts
+   [{:person/first-name "Tom",
+     :person/last-name "Marble",
+     :person/telephone [{:telephone/number "111-111-9999"}],
+     :person/address [{:address/street "Main St.",
+                       :address/city "Edina",
+                       :address/state "Minnesota",
+                       :address/zipcode "55438"}]}
+    ]})
+
+(defn fetch-contacts
+  "Return simple, static contacts data (ignore the query)."
+  [query]
+  bob-martha)
 
 (defn label+span
   "Construct a label and span (with optional opts)."
@@ -128,29 +142,26 @@
 ;;           (gdom/getElement "demo3"))))))
 
 (defn main []
+  (println "-- main --")
   (let [query (om/get-query ContactList)
-        contacts (fetch-contacts query)]
-    (js/React.render
-      (contact-list contacts)
-      (gdom/getElement "app"))))
+        contacts (fetch-contacts query)
+        app (gdom/getElement "app")]
+    (reset! app-state (TreeStore. contacts))
+    ;; (reset! reconciler (om/tree-reconciler app-state))
+    (reset! reconciler (tom/tree-reconciler app-state))
+    (om/add-root! @reconciler app ContactList)
+    ))
 
 (when (gdom/getElement "app")
   (main))
 
-;; things to try on the REPL...
+;; trying to update the app-state by pushing to the store
+;; *should* provoke an update, but does not because
+;; even though the tree-reconciler is watching the app-state atom
+;; because the render function isn't given a data argument at
+;; https://github.com/omcljs/om/blob/master/src/om/next.cljs#L385
+;;
+;; modified in prochaine.next.cljs to grab root data (if not provided)
 
-;; contacts.demo3=> (pprint (om/get-query AddressInfo))
-;; [:address/street :address/city :address/zipcode]
-
-;; contacts.demo3=> (pprint (om/get-query Contact))
-;; [:person/first-name
-;;  :person/last-name
-;;  {:person/telephone [:telephone/number]}
-;;  {:person/address [:address/street :address/city :address/zipcode]}]
-
-;; contacts.demo3=> (pprint (om/get-query ContactList))
-;; [{:app/contacts
-;;   [:person/first-name
-;;    :person/last-name
-;;    {:person/telephone [:telephone/number]}
-;;    {:person/address [:address/street :address/city :address/zipcode]}]}]
+;; (swap! app-state #(p/push % tom nil))
+;; (swap! app-state #(p/push % bob-martha nil))
