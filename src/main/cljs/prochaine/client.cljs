@@ -50,6 +50,14 @@
   [query]
   bob-martha)
 
+(defn add-random-contact []
+  (let [contact (rand-nth (:app/contacts (merge-with concat bob-martha tom)))]
+    (swap! app-state #(p/push % (-> %
+                                    (p/pull [:app/contacts] nil)
+                                    :app/contacts
+                                    (conj contact))
+                              [:app/contacts]))))
+
 (defn label+span
   "Construct a label and span (with optional opts)."
   ([label-content span-content]
@@ -125,8 +133,10 @@
     (let [{:keys [:app/contacts]} (om/props this)]
       (dom/div nil
         (dom/h3 nil "Contacts")
+        (dom/div nil
+                 (dom/button #js {:onClick add-random-contact} "Add Random Person"))
         (apply dom/ul nil
-          (map #(dom/li nil (contact %)) contacts))))))
+               (map #(dom/li nil (contact %)) contacts))))))
 
 (def contact-list (om/create-factory ContactList))
 
@@ -149,8 +159,7 @@
     (reset! app-state (TreeStore. contacts))
     ;; (reset! reconciler (om/tree-reconciler app-state))
     (reset! reconciler (tom/tree-reconciler app-state))
-    (om/add-root! @reconciler app ContactList)
-    ))
+    (om/add-root! @reconciler app ContactList)))
 
 (when (gdom/getElement "app")
   (main))
