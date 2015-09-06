@@ -12,6 +12,11 @@
             [om.next.stores :refer [TreeStore]]
             [om.dom :as dom]))
 
+;; Development notes
+;;(use 'figwheel-sidecar.repl-api)
+;;(cljs-repl)
+;;(in-ns 'prochaine.client)
+
 (enable-console-print!)
 
 (defonce app-state (atom nil))
