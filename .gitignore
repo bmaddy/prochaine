@@ -18,6 +18,7 @@
 /target
 /checkouts
 /.lein-*
+.repl
 
 # Editor artifacts
 .nrepl-port
