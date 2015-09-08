@@ -54,7 +54,7 @@
                    (let [ret (atom nil)
                          rctor (om/create-factory root-class)]
                      (swap! idxs assoc root-class (om/build-index root-class))
-                     (let [sel     (om/get-query root-class)
+                     (let [sel     (om/query root-class)
                            renderf (fn [data]
                                      (let [data (or data
                                                   (p/pull @state sel nil))]

@@ -12,7 +12,7 @@
                  ;;[org.omcljs/om "0.9.0"]
                  ]
 
-  :git-dependencies [["https://github.com/omcljs/om.git" "5a395568ab8ab00cae1bebf282e0ea6e0e282902"]]
+  :git-dependencies [["https://github.com/omcljs/om.git" "a3bf9ac50305fb91cf8b980fab22a1bfc450225e"]]
 
   :plugins [[lein-cljsbuild "1.0.6"]
             [lein-figwheel "0.3.9" :exclusions [org.clojure/clojure]]
@@ -45,5 +45,5 @@
                        :cache-analysis true
                        :optimizations :none
                        :pretty-print false
-                       ;;:warnings {:single-segment-namespace false}
+                       :warnings {:single-segment-namespace false}
                        }}}}}})

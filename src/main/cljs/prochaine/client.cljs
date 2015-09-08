@@ -10,7 +10,9 @@
             [prochaine.next :as tom]
             [om.next.protocols :as p]
             [om.next.stores :refer [TreeStore]]
-            [om.dom :as dom]))
+            [om.dom :as dom]
+            [datascript :as d]
+            [prochaine.ds :as ds]))
 
 ;; Development notes
 ;;(use 'figwheel-sidecar.repl-api)
@@ -27,17 +29,19 @@
    [{:person/first-name "Bob",
      :person/last-name "Smith"
      :person/telephone [{:telephone/number "111-111-1111"}]
-     :person/address [{:address/street "Maple Street",
-                       :address/city "Boston",
-                       :address/state "Massachusetts",
-                       :address/zipcode "11111"}]}
+     :person/address
+     [{:address/street "Maple Street",
+       :address/city "Boston",
+       :address/state "Massachusetts",
+       :address/zipcode "11111"}]}
     {:person/first-name "Martha",
      :person/last-name "Smith"
      :person/telephone [{:telephone/number "111-111-1112"}]
-     :person/address [{:address/street "Maple Street",
-                       :address/city "Boston",
-                       :address/state "Massachusetts",
-                       :address/zipcode "11112"}]}]})
+     :person/address
+     [{:address/street "Maple Street",
+       :address/city "Boston",
+       :address/state "Massachusetts",
+       :address/zipcode "11112"}]}]})
 
 (def tom
   {:app/contacts
@@ -83,7 +87,7 @@
 
 (defui AddressInfo
   static om/IQuery
-  (query [this]
+  (-query [this]
     '[:address/street :address/city :address/zipcode])
   Object
   (render [this]
@@ -102,10 +106,10 @@
 
 (defui Contact
   static om/IQueryParams
-  (params [this]
-    {:address (om/get-query AddressInfo)})
+  (-params [this]
+    {:address (om/query AddressInfo)})
   static om/IQuery
-  (query [this]
+  (-query [this]
     '[:person/first-name :person/last-name
       {:person/telephone [:telephone/number]}
       {:person/address ?address}])
@@ -128,10 +132,10 @@
 
 (defui ContactList
   static om/IQueryParams
-  (params [this]
-    {:contact (om/get-query Contact)})
+  (-params [this]
+    {:contact (om/query Contact)})
   static om/IQuery
-  (query [this]
+  (-query [this]
     '[{:app/contacts ?contact}])
   Object
   (render [this]
@@ -149,16 +153,25 @@
 ;; main
 
 ;; (defn main []
-;;   (let [c (fetch (om/get-query ContactList))]
+;;   (let [c (fetch (om/query ContactList))]
 ;;     (go
 ;;       (let [contacts (:body (<! c))]
 ;;         (js/React.render
 ;;           (contact-list contacts)
 ;;           (gdom/getElement "demo3"))))))
 
+(d/transact! ds/conn
+  [{:db/id -1
+    :app/title "Hello, World!"
+    :app/state [{:db/id -1 :state/count 0}
+                {:db/id -2 :state/count 0}
+                {:db/id -3 :state/count 0}]}])
+
+;;(def store (atom (ds/DataScriptStore. @ds/conn ds/conn)))
+
 (defn main []
   (println "-- main --")
-  (let [query (om/get-query ContactList)
+  (let [query (om/query ContactList)
         contacts (fetch-contacts query)
         app (gdom/getElement "app")]
     (reset! app-state (TreeStore. contacts))
