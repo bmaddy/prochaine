@@ -23,7 +23,7 @@
         t      (atom 0)
         r      (reify
                  p/ICommitQueue
-                 (commit! [_ next-props component]
+                 (commit! [_ tx-type next-props component]
                    (let [index (om/index component)
                          path  (cond->
                                  (get-in @idxs
@@ -33,6 +33,11 @@
                      (swap! t inc) ;; TODO: probably should revisit doing this here
                      (swap! queue conj [component next-props])
                      (swap! state p/push next-props path)))
+                 p/IComponentIndex
+                 (index-component! [_ c]
+                   (swap! idxs update-in [:type->components (type c)] (fnil conj #{}) c))
+                 (drop-component! [_ c]
+                   (swap! idxs update-in [:type->components (type c)] disj c))
                  p/IReconciler
                  (basis-t [_] @t)
                  (store [_] @state)
