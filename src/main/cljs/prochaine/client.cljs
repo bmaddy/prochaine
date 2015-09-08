@@ -82,6 +82,15 @@
        (apply dom/label nil label-content)
        (apply dom/span nil span-content)))))
 
+(defn load-all-data! [conn]
+  (println "Loading data...")
+  (d/transact! conn
+               [{:db/id -1
+                 :app/title "Hello, World!"
+                 :app/state [{:db/id -1 :state/count 0}
+                             {:db/id -2 :state/count 0}
+                             {:db/id -3 :state/count 0}]}]))
+
 ;; ============================================================
 ;; AddressInfo Component
 
@@ -149,6 +158,8 @@
 
 (def contact-list (om/create-factory ContactList))
 
+(def store (atom (ds/DataScriptStore. @ds/conn ds/conn nil nil)))
+
 ;; ============================================================
 ;; main
 
@@ -160,17 +171,9 @@
 ;;           (contact-list contacts)
 ;;           (gdom/getElement "demo3"))))))
 
-(d/transact! ds/conn
-  [{:db/id -1
-    :app/title "Hello, World!"
-    :app/state [{:db/id -1 :state/count 0}
-                {:db/id -2 :state/count 0}
-                {:db/id -3 :state/count 0}]}])
-
-;;(def store (atom (ds/DataScriptStore. @ds/conn ds/conn)))
-
 (defn main []
   (println "-- main --")
+  (load-all-data! ds/conn)
   (let [query (om/query ContactList)
         contacts (fetch-contacts query)
         app (gdom/getElement "app")]
