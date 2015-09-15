@@ -12,7 +12,7 @@
                  ;;[org.omcljs/om "0.9.0"]
                  ]
 
-  :git-dependencies [["https://github.com/omcljs/om.git" "a3bf9ac50305fb91cf8b980fab22a1bfc450225e"]]
+  :git-dependencies [["https://github.com/omcljs/om.git" "aefcb478723add6be352d9775e1f079f96fb2afb"]]
 
   :plugins [[lein-cljsbuild "1.0.6"]
             [lein-figwheel "0.3.9" :exclusions [org.clojure/clojure]]
