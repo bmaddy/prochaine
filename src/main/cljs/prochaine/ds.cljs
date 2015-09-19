@@ -3,19 +3,21 @@
             [om.next :as om]
             [om.next.protocols :as p]))
 
-(def schema
-  {:app/contacts {:db/valueType :db.type/ref
-                  :db/cardinality :db.cardinality/many
-                  :db/isComponent true}})
-
-(def conn (d/create-conn schema))
-
 (defmulti ds-query (fn [_ root _] root))
+
+(defmethod ds-query :app/root
+  [db _ selector]
+  (d/q '[:find (pull ?e ?selector)
+         :in $ ?selector
+         :where [?e :app/title]]
+       db (conj selector :db/id)))
 
 (deftype DataScriptStore [db conn tx-report index]
   p/IPull
   (pull [this selector _]
+    (cljs.pprint/pprint selector)
     (let [[root root-selector] (first selector)]
+      (cljs.pprint/pprint root-selector)
       (ds-query db root root-selector)))
   ;;p/IPush
   #_(push [this tx-data _]

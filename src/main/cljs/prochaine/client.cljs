@@ -24,35 +24,42 @@
 (defonce app-state (atom nil))
 (defonce reconciler (atom nil))
 
-(def bob-martha
-  {:app/contacts
-   [{:person/first-name "Bob",
+(def bob-data
+  {:person/first-name "Bob",
      :person/last-name "Smith"
      :person/telephone [{:telephone/number "111-111-1111"}]
      :person/address
      [{:address/street "Maple Street",
        :address/city "Boston",
        :address/state "Massachusetts",
-       :address/zipcode "11111"}]}
-    {:person/first-name "Martha",
+       :address/zipcode "11111"}]})
+
+(def martha-data
+  {:person/first-name "Martha",
      :person/last-name "Smith"
      :person/telephone [{:telephone/number "111-111-1112"}]
      :person/address
      [{:address/street "Maple Street",
        :address/city "Boston",
        :address/state "Massachusetts",
-       :address/zipcode "11112"}]}]})
+       :address/zipcode "11112"}]})
 
-(def tom
+(def bob-martha
   {:app/contacts
-   [{:person/first-name "Tom",
+   [bob-data
+    martha-data]})
+
+(def tom-data
+  {:person/first-name "Tom",
      :person/last-name "Marble",
      :person/telephone [{:telephone/number "111-111-9999"}],
      :person/address [{:address/street "Main St.",
                        :address/city "Edina",
                        :address/state "Minnesota",
-                       :address/zipcode "55438"}]}
-    ]})
+                       :address/zipcode "55438"}]})
+(def tom
+  {:app/contacts
+   [tom-data]})
 
 (defn fetch-contacts
   "Return simple, static contacts data (ignore the query)."
@@ -82,14 +89,43 @@
        (apply dom/label nil label-content)
        (apply dom/span nil span-content)))))
 
+(def schema
+  {:app/contacts {:db/valueType :db.type/ref
+                  :db/cardinality :db.cardinality/many
+                  :db/isComponent true}
+   :person/telephone {:db/valueType :db.type/ref
+                      :db/cardinality :db.cardinality/many
+                      :db/isComponent true}
+   :person/address {:db/valueType :db.type/ref
+                    :db/cardinality :db.cardinality/many
+                    :db/isComponent true}})
+
+(def conn (d/create-conn schema))
+
+#_(def seed-data
+  [{:db/id -1
+    :app/title "Hello, World!"
+    :app/foo "bar"
+    :app/state [{:db/id -1 :state/count 0}
+                {:db/id -2 :state/count 0}
+                {:db/id -3 :state/count 0}]}])
+
+(def seed-data
+  [{:app/title "some title here"
+    :app/contacts [{:person/first-name "Bob",
+                    :person/last-name "Smith"
+                    :person/telephone [{:telephone/number "111-111-1111"}
+                                       {:telephone/number "222-222-2222"}]
+                    :person/address
+                    [{:address/street "Maple Street",
+                      :address/city "Boston",
+                      :address/state "Massachusetts",
+                      :address/zipcode "11111"}]}]}])
+
 (defn load-all-data! [conn]
   (println "Loading data...")
   (d/transact! conn
-               [{:db/id -1
-                 :app/title "Hello, World!"
-                 :app/state [{:db/id -1 :state/count 0}
-                             {:db/id -2 :state/count 0}
-                             {:db/id -3 :state/count 0}]}]))
+               seed-data))
 
 ;; ============================================================
 ;; AddressInfo Component
@@ -97,7 +133,8 @@
 (defui AddressInfo
   static om/IQuery
   (-query [this]
-    '[:address/street :address/city :address/zipcode])
+          ;;'[:address/street :address/city :address/zipcode]
+          '{:app/root [:app/title]})
   Object
   (render [this]
     (let [{:keys [:address/street :address/city
@@ -158,7 +195,7 @@
 
 (def contact-list (om/create-factory ContactList))
 
-(def store (atom (ds/DataScriptStore. @ds/conn ds/conn nil nil)))
+(def store (atom (ds/DataScriptStore. @conn conn nil nil)))
 
 ;; ============================================================
 ;; main
@@ -173,14 +210,19 @@
 
 (defn main []
   (println "-- main --")
-  (load-all-data! ds/conn)
+  (load-all-data! conn)
   (let [query (om/query ContactList)
         contacts (fetch-contacts query)
         app (gdom/getElement "app")]
     (reset! app-state (TreeStore. contacts))
     ;; (reset! reconciler (om/tree-reconciler app-state))
-    (reset! reconciler (tom/tree-reconciler app-state))
-    (om/add-root! @reconciler app ContactList)))
+    ;;(reset! reconciler (tom/tree-reconciler app-state))
+    (reset! reconciler (tom/tree-reconciler store))
+    ;;(om/add-root! @reconciler app ContactList)
+    (om/add-root! @reconciler app AddressInfo)
+    ;;(om/add-root! @reconciler app HelloWorld)
+    )
+  )
 
 (when (gdom/getElement "app")
   (main))
