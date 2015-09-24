@@ -12,10 +12,24 @@
 
 (defmulti ds-query (fn [_ root _] root))
 
+(defmethod ds-query :app/title
+  [db _ selector]
+  ;; make this query work
+  (d/q '[:find (pull ?e ?selector)
+         :in $ ?selector
+         :where [?e :app/title]]
+    db (conj selector :db/id)))
+
+(comment
+  ;; make this query work
+  (ds-query db :app/title selector)
+  )
+
 (deftype DataScriptStore [db conn tx-report index]
   p/IPull
-  (pull [this selector _]
-    (let [[root root-selector] (first selector)]
+  (pull [this selector ctxt]
+    (ds-query db :app/title selector)
+    #_(let [[root root-selector] (first selector)]
       (ds-query db root root-selector)))
   ;;p/IPush
   #_(push [this tx-data _]
