@@ -127,14 +127,47 @@
   (d/transact! conn
                seed-data))
 
+(comment
+  ;; NOTES:
+  ;; table-store example
+  (om.next.stores/tables-pull
+    {:app {:app/title "Hello World!" :app/state [0 1 2]}
+     :app/state [{:state/count 0}
+                 {:state/count 0}
+                 {:state/count 0}]}
+    [{:app [:app/title {:app/state [:state/count]}]}])
+  {:app {:app/title "Hello World!", :app/state [{:state/count 0} {:state/count 0} {:state/count 0}]}}
+
+  ;; query we want to satisfy:
+  (om/query ContactList)
+  [{:app/contacts [:person/first-name
+                   :person/last-name
+                   {:person/telephone [:telephone/number]}
+                   {:person/address [:address/street
+                                     :address/city
+                                     :address/zipcode]}]}]
+  ;; expect something like this:
+  [{:app/contacts [{:person/first-name "Bob"
+                    :person/last-name "Smith"
+                    {:person/telephone [{:telephone/number "111-111-1111"}
+                                        {:telephone/number "222-222-2222"}]}
+                    {:person/address [{:address/street "Maple Street"
+                                       :address/city "Boston"
+                                       :address/state "Massachusetts"
+                                       :address/zipcode "11111"}]}}]}]
+  ;; ds query we need to generate:
+  (d/q '[:find ])
+  )
+
 ;; ============================================================
 ;; AddressInfo Component
 
 (defui AddressInfo
   static om/IQuery
   (-query [this]
-          ;;'[:address/street :address/city :address/zipcode]
-          '{:app/root [:app/title]})
+          '[:address/street :address/city :address/zipcode]
+          ;;'{:app/root [:app/title]}
+          )
   Object
   (render [this]
     (let [{:keys [:address/street :address/city
